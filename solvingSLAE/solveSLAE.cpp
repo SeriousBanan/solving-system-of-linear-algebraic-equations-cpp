@@ -27,7 +27,7 @@ std::string solveSLAE(Matrix<int> &A, std::vector<int> &S)
 		return getInfSolution(AS, Xlen - rangA);
 }
 
-std::vector<int> operator+(std::vector<int> &row1, std::vector<int> &row2)
+std::vector<int> operator+(std::vector<int> row1, std::vector<int> row2)
 {
 	if (row1.size() != row2.size())
 		throw(std::out_of_range("Wrong dimention"));
@@ -50,8 +50,20 @@ std::vector<int> operator*(std::vector<int> &row, int k)
 	return res;
 }
 
+std::string toString(int value)
+{
+	std::stringstream ss;
+	ss << value;
+	return ss.str();
+}
+
 int GCF(int a, int b)
 {
+	if (a < 0)
+		a = -a;
+	if (b < 0)
+		b = -b;
+
 	if (a == 0)
 		return b;
 	if (b == 0)
@@ -66,7 +78,7 @@ int GCF(int a, int b)
 		return 2 * GCF(a / 2, b / 2);
 	if (a % 2 == 0)
 		return GCF(a / 2, b);
-	if (a % 2 == 0)
+	if (b % 2 == 0)
 		return GCF(a, b / 2);
 
 	if (a > b)
@@ -82,7 +94,44 @@ int LCM(int a, int b)
 
 std::string getOneSolution(Matrix<int> &AS)
 {
-	return "null";
+	for (size_t i{ 0 }; i < AS.cols() - 1; ++i)
+	{
+		//If the coefficient on the main diagonal equal zero change rows.
+		size_t swapId = i + 1;
+		while (AS[i][i] == 0 && swapId < AS.rows())
+			AS.changeRows(i, swapId++);
+
+		for (size_t j{ 0 }; j < AS.rows(); ++j)
+		{
+			if (j == i)
+				continue;
+
+			AS[j] = (AS[j] * (LCM(AS[j][i], AS[i][i]) / AS[j][i])) + (AS[i] * -(LCM(AS[j][i], AS[i][i]) / AS[i][i]));
+		}
+	}
+
+	for (size_t i{ 0 }; i < AS.cols() - 1; ++i)
+	{
+		if (AS[i][i] < 0)
+		{
+			AS[i][i] = -AS[i][i];
+			AS[i][AS.cols() - 1] = -AS[i][AS.cols() - 1];
+		}
+		int gcf = GCF(AS[i][i], AS[i][AS.cols() - 1]);
+		AS[i][i] /= gcf;
+		AS[i][AS.cols() - 1] /= gcf;
+	}
+
+	std::string res{ "" };
+	for (size_t i{ 0 }; i < AS.cols() - 1; ++i)
+	{
+		res += "X" + toString(i + 1) + " = " + toString(AS[i][AS.cols() - 1]);
+		if (AS[i][i] != 1 && AS[i][AS.cols() - 1] != 0)
+			res += " / " + toString(AS[i][i]);
+		res += '\n';
+	}
+
+	return res;
 }
 
 std::string getInfSolution(Matrix<int> &AS, int countFreeVar)
