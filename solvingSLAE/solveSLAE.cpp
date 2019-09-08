@@ -89,6 +89,11 @@ int GCF(int a, int b)
 
 int LCM(int a, int b)
 {
+	if (a < 0)
+		a = -a;
+	if (b < 0)
+		b = -b;
+
 	return a * b / GCF(a, b);
 }
 
@@ -104,6 +109,8 @@ std::string getOneSolution(Matrix<int> &AS)
 		for (size_t j{ 0 }; j < AS.rows(); ++j)
 		{
 			if (j == i)
+				continue;
+			if (AS[j][i] == 0)
 				continue;
 
 			AS[j] = (AS[j] * (LCM(AS[j][i], AS[i][i]) / AS[j][i])) + (AS[i] * -(LCM(AS[j][i], AS[i][i]) / AS[i][i]));
