@@ -102,7 +102,7 @@ std::string getOneSolution(Matrix<int> &AS)
 	for (size_t i{ 0 }; i < AS.cols() - 1; ++i)
 	{
 		//If the coefficient on the main diagonal equal zero change rows.
-		size_t swapId = i + 1;
+		size_t swapId{ i + 1 };
 		while (AS[i][i] == 0 && swapId < AS.rows())
 			AS.changeRows(i, swapId++);
 
@@ -113,7 +113,8 @@ std::string getOneSolution(Matrix<int> &AS)
 			if (AS[j][i] == 0)
 				continue;
 
-			AS[j] = (AS[j] * (LCM(AS[j][i], AS[i][i]) / AS[j][i])) + (AS[i] * -(LCM(AS[j][i], AS[i][i]) / AS[i][i]));
+			int lcm{ LCM(AS[j][i], AS[i][i]) };
+			AS[j] = AS[j] * (lcm / AS[j][i]) + AS[i] * -(lcm / AS[i][i]);
 		}
 	}
 
@@ -125,7 +126,7 @@ std::string getOneSolution(Matrix<int> &AS)
 			AS[i][AS.cols() - 1] = -AS[i][AS.cols() - 1];
 		}
 
-		int gcf = GCF(AS[i][i], AS[i][AS.cols() - 1]);
+		int gcf{ GCF(AS[i][i], AS[i][AS.cols() - 1]) };
 		AS[i][i] /= gcf;
 		AS[i][AS.cols() - 1] /= gcf;
 	}
@@ -182,7 +183,8 @@ std::string getInfSolution(Matrix<int> &AS, int countIndepVar)
 			if (AS[i][mainCol] == 0)
 				continue;
 
-			AS[i] = (AS[i] * (LCM(AS[i][mainCol], AS[mainRow][mainCol]) / AS[i][mainCol])) + (AS[mainRow] * -(LCM(AS[i][mainCol], AS[mainRow][mainCol]) / AS[mainRow][mainCol]));
+			int lcm{ LCM(AS[i][mainCol], AS[mainRow][mainCol]) };
+			AS[i] = (AS[i] * (lcm / AS[i][mainCol])) + (AS[mainRow] * -(lcm / AS[mainRow][mainCol]));
 		}
 		++mainRow;
 	}
@@ -199,12 +201,6 @@ std::string getInfSolution(Matrix<int> &AS, int countIndepVar)
 				AS[mainRow][i] = -AS[mainRow][i];
 			}
 
-		int gcf = AS[mainRow][0];
-		for (size_t i{ 0 }; i < AS.cols(); ++i)
-			gcf = GCF(gcf, AS[mainRow][i]);
-
-		for (size_t i{ 0 }; i < AS.cols(); ++i)
-			AS[mainRow][i] /= gcf;
 		++mainRow;
 	}
 
@@ -221,9 +217,17 @@ std::string getInfSolution(Matrix<int> &AS, int countIndepVar)
 		res += "X" + toString(mainCol + 1) + " = "; 
 		if (AS[mainRow][AS.cols() - 1] != 0)
 		{
-			res += toString(AS[mainRow][AS.cols() - 1]);
-			if (AS[mainRow][mainCol] != 1)
-				res += " / " + toString(AS[mainRow][mainCol]);
+			if (AS[mainRow][AS.cols() - 1] < 0)
+			{
+				res += "- ";
+				AS[mainRow][AS.cols() - 1] = -AS[mainRow][AS.cols() - 1];
+			}
+
+			int gcf{ GCF(AS[mainRow][mainCol], AS[mainRow][AS.cols() - 1]) };
+
+			res += toString(AS[mainRow][AS.cols() - 1] / gcf);
+			if (AS[mainRow][mainCol] / gcf != 1)
+				res += " / " + toString(AS[mainRow][mainCol] / gcf);
 		}
 		for (size_t i{ 0 }; i < indepVar.size(); ++i)
 		{
@@ -238,12 +242,21 @@ std::string getInfSolution(Matrix<int> &AS, int countIndepVar)
 					res += "- ";
 					AS[mainRow][indepVar[i]] = -AS[mainRow][indepVar[i]];
 				}
-				res += toString(-AS[mainRow][indepVar[i]]);
-				if (AS[mainRow][mainCol] != 1)
-					res += " / " + toString(AS[mainRow][mainCol]);
-				res += " * X" + toString(indepVar[i] + 1);
+
+				int gcf{ GCF(AS[mainRow][mainCol], AS[mainRow][indepVar[i]]) };
+
+				if (AS[mainRow][mainCol] / gcf != 1 || -AS[mainRow][indepVar[i]] / gcf != 1)
+				{
+					res += toString(-AS[mainRow][indepVar[i]] / gcf);
+					if (AS[mainRow][mainCol] / gcf != 1)
+						res += " / " + toString(AS[mainRow][mainCol] / gcf);
+					res += " * ";
+				}
+				res += "X" + toString(indepVar[i] + 1);
 			}
 		}
+		if (res.at(res.length() - 2) == '=')
+			res += '0';
 		res += '\n';
 
 		++mainRow;
