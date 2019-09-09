@@ -124,6 +124,7 @@ std::string getOneSolution(Matrix<int> &AS)
 			AS[i][i] = -AS[i][i];
 			AS[i][AS.cols() - 1] = -AS[i][AS.cols() - 1];
 		}
+
 		int gcf = GCF(AS[i][i], AS[i][AS.cols() - 1]);
 		AS[i][i] /= gcf;
 		AS[i][AS.cols() - 1] /= gcf;
@@ -141,8 +142,113 @@ std::string getOneSolution(Matrix<int> &AS)
 	return res;
 }
 
-std::string getInfSolution(Matrix<int> &AS, int countFreeVar)
+std::string getInfSolution(Matrix<int> &AS, int countIndepVar)
 {
-	return "null";
+	//Create and fill array with indexes of independent variables
+	std::vector<size_t> indepVar(countIndepVar);
+	for (size_t i{ 0 }; i < indepVar.size(); ++i)
+	{
+		indepVar[i] = AS.cols() - 1 - countIndepVar + i;
+	}
+
+
+	for (size_t mainCol{ 0 }, mainRow{ 0 }; mainCol < AS.cols() - 1; ++mainCol)
+	{
+		//If it's column with independed variable we don't make enything
+		if (std::find(indepVar.begin(), indepVar.end(), mainCol) != indepVar.end())
+			continue;
+
+		//If the coefficient on the main diagonal equal zero change rows.
+		size_t swapId = mainRow + 1;
+		while (AS[mainRow][mainCol] == 0 && swapId < AS.rows())
+			AS.changeRows(mainRow, swapId++);
+
+		//If not swapped we change independed variables
+		if (AS[mainRow][mainCol] == 0 && swapId == AS.rows())
+		{
+			for (size_t i{ 0 }; i < indepVar.size(); ++i)
+			{
+				if (indepVar[i] > mainCol)
+					indepVar[i] = mainCol;
+				break;
+			}
+			continue;
+		}
+
+		for (size_t i{ 0 }; i < AS.rows(); ++i)
+		{
+			if (i == mainRow)
+				continue;
+			if (AS[i][mainCol] == 0)
+				continue;
+
+			AS[i] = (AS[i] * (LCM(AS[i][mainCol], AS[mainRow][mainCol]) / AS[i][mainCol])) + (AS[mainRow] * -(LCM(AS[i][mainCol], AS[mainRow][mainCol]) / AS[mainRow][mainCol]));
+		}
+		++mainRow;
+	}
+
+	for (size_t mainCol{ 0 }, mainRow{ 0 }; mainCol < AS.cols() - 1; ++mainCol)
+	{
+		//If it's column with independed variable we don't make enything
+		if (std::find(indepVar.begin(), indepVar.end(), mainCol) != indepVar.end())
+			continue;
+
+		if (AS[mainRow][mainCol] < 0)
+			for (size_t i{ 0 }; i < AS.cols(); ++i)
+			{
+				AS[mainRow][i] = -AS[mainRow][i];
+			}
+
+		int gcf = AS[mainRow][0];
+		for (size_t i{ 0 }; i < AS.cols(); ++i)
+			gcf = GCF(gcf, AS[mainRow][i]);
+
+		for (size_t i{ 0 }; i < AS.cols(); ++i)
+			AS[mainRow][i] /= gcf;
+		++mainRow;
+	}
+
+	std::string res{ "" };
+	for (size_t mainCol{ 0 }, mainRow{ 0 }; mainCol < AS.cols() - 1; ++mainCol)
+	{
+		//If it's column with independed variable we don't make enything
+		if (std::find(indepVar.begin(), indepVar.end(), mainCol) != indepVar.end())
+		{
+			res += "X" + toString(mainCol + 1) + " = " + "X" + toString(mainCol + 1) + '\n';
+			continue;
+		}
+
+		res += "X" + toString(mainCol + 1) + " = "; 
+		if (AS[mainRow][AS.cols() - 1] != 0)
+		{
+			res += toString(AS[mainRow][AS.cols() - 1]);
+			if (AS[mainRow][mainCol] != 1)
+				res += " / " + toString(AS[mainRow][mainCol]);
+		}
+		for (size_t i{ 0 }; i < indepVar.size(); ++i)
+		{
+			if (AS[mainRow][indepVar[i]] != 0)
+			{
+				if (-AS[mainRow][indepVar[i]] > 0 && res.at(res.length() - 2) != '=')
+					res += " + ";
+				else if (-AS[mainRow][indepVar[i]] < 0)
+				{
+					if (res.at(res.length() - 2) != '=')
+						res += ' ';
+					res += "- ";
+					AS[mainRow][indepVar[i]] = -AS[mainRow][indepVar[i]];
+				}
+				res += toString(-AS[mainRow][indepVar[i]]);
+				if (AS[mainRow][mainCol] != 1)
+					res += " / " + toString(AS[mainRow][mainCol]);
+				res += " * X" + toString(indepVar[i] + 1);
+			}
+		}
+		res += '\n';
+
+		++mainRow;
+	}
+
+	return res;
 }
 
