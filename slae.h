@@ -2,6 +2,8 @@
 #define SLAE_H
 
 #include <QMainWindow>
+#include "solvingSLAE/solveSLAE.h"
+#include "ui_slae.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class SLAE; }
@@ -22,8 +24,8 @@ private slots:
 
 private:
     Ui::SLAE *ui;
-    int countOfEquations{3};
-    int countOfVariables{3};
     void CreateSLAE();
+    Matrix<QSpinBox*> C{ 3, 3 };
+    std::vector<QSpinBox*> E{3};
 };
 #endif // SLAE_H

@@ -17,7 +17,7 @@ SLAE::~SLAE()
     delete ui;
 }
 
-QString toString(double value) {
+QString toQString(double value) {
     std::stringstream ss;
     ss << value;
     return QString(ss.str().c_str());
@@ -29,30 +29,30 @@ void SLAE::CreateSLAE() {
     ui->SLAEContainer->setWidget(central);
     ui->SLAEContainer->setWidgetResizable(true);
 
-    for (int i = 0; i < countOfEquations; ++i) {
+    for (int i = 0; i < C.rows(); ++i) {
         QWidget *row = new QWidget();
         QHBoxLayout *rowLayout = new QHBoxLayout(row);
-        //Добавить заполнение матрицы
 
-        for (int j{0}; j < countOfVariables; ++j) {
-            QDoubleSpinBox *coefficient = new QDoubleSpinBox();
-            coefficient->setFixedWidth(100);
-            coefficient->setRange(-100000,100000);
+        for (int j{0}; j < C.cols(); ++j) {
+            C[i][j] = new QSpinBox();
+            C[i][j]->setFixedWidth(100);
+            C[i][j]->setRange(-100000,100000);
 
-            QString labelText = "X" + toString(j + 1);
-            if (j == countOfVariables - 1)
+            QString labelText = "X" + toQString(j + 1);
+            if (j == C.cols() - 1)
                 labelText += " = ";
             else
                 labelText += " + ";
             QLabel *label = new QLabel(labelText);
 
-            rowLayout->addWidget(coefficient);
+            rowLayout->addWidget(C[i][j]);
             rowLayout->addWidget(label);
         }
-        QDoubleSpinBox *freeCoefficient = new QDoubleSpinBox();
-        freeCoefficient->setFixedWidth(100);
-        freeCoefficient->setRange(-100000,100000);
-        rowLayout->addWidget(freeCoefficient);
+        E[i] = new QSpinBox();
+        E[i]->setFixedWidth(100);
+        E[i]->setRange(-100000,100000);
+
+        rowLayout->addWidget(E[i]);
 
         layout->addWidget(row);
     }
@@ -60,9 +60,8 @@ void SLAE::CreateSLAE() {
 
 void SLAE::on_resizeButton_clicked()
 {
-    //Добавить генерацию матрицы
-    countOfEquations = ui->countOfEquation->value();
-    countOfVariables = ui->counOfVariables->value();
+    C.resize(ui->countOfEquation->value(), ui->counOfVariables->value());
+    E.resize(ui->countOfEquation->value());
     CreateSLAE();
 }
 
