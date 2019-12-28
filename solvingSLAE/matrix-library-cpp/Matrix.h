@@ -43,8 +43,8 @@ public:
 	Matrix<T> operator-() const;
 	template<typename T>
 	friend Matrix<T> operator+(const Matrix<T> &mat1, const Matrix<T> &mat2);
-	template<typename T>
-	inline friend Matrix<T> operator-(const Matrix<T> &mat1, const Matrix<T> &mat2) { return mat1 + (-mat2); }
+    template<typename T>
+    inline friend Matrix<T> operator-(const Matrix<T> &mat1, const Matrix<T> &mat2) { return mat1 + (-mat2); }
 	inline Matrix<T>& operator+= (const Matrix<T> &mat) { *this = *this + mat; return *this; }
 	inline Matrix<T>& operator-= (const Matrix<T> &mat) { *this = *this + (-mat); return *this; }
 

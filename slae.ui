@@ -62,7 +62,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="counOfVariables">
+          <widget class="QSpinBox" name="countOfVariables">
            <property name="minimum">
             <number>1</number>
            </property>
